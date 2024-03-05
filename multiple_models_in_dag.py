@@ -52,7 +52,7 @@ dag = DAG(
 
 def init() -> Dict[str, Any]:
     metrics = {}
-    metrics["start_timestamp"] = datetime.now().strftime("%Y_%n_%d_%H")
+    metrics["start_timestamp"] = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     return metrics
 
 def get_data_from_postgres(**kwargs) -> Dict[str, Any]:
@@ -80,10 +80,10 @@ def train_model(name_model) -> Dict[str, Any]:
             data[name] = pd.read_pickle(file)
 
         model = models[m_name]
-        metrics["train_start"] = datetime.now().strftime("%Y_%n_%d_%H")
+        metrics["train_start"] = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
         model.fit(data["X_train"], data["y_train"])
         prediction = model.predict(data["X_test"])
-        metrics["train_end"] = datetime.now().strftime("%Y_%n_%d_%H")
+        metrics["train_end"] = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         metrics["r2_score"] = r2_score(data["y_test"], prediction)
         metrics["rmse"] = mean_squared_error(data["y_test"], prediction)
@@ -99,11 +99,11 @@ def save_results(**kwargs) -> None:
         for n in models.keys():
             metrics["models_metrics"].append(ti.xcom_pull(task_ids = f"train_model_{n}"))
 
-        metrics["end_timestamp"] = datetime.now().strftime("%Y_%n_%d_%H")
+        metrics["end_timestamp"] = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
         # сохраняем на s3
         s3_hook = S3Hook("s3_connection")
-        date = datetime.now().strftime("%Y_%n_%d_%H")
+        date = datetime.now().strftime("%Y_%m_%d_%H_%M")
         session = s3_hook.get_session("ru-central1")
         resource = session.resource("s3")
         json_byte_object = json.dumps(metrics)
